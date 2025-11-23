@@ -1,0 +1,60 @@
+.logo {
+  --pleno-primary: var(--sidebar-accent, oklch(0.6299 0.1983 263.75));
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  user-select: none;
+}
+.logo:hover { transform: translateY(-1px); }
+.logoIcon { position: relative; }
+.iconBars { position: absolute; inset:0; }
+.bar { position: absolute; background: var(--pleno-primary); border-radius: 2px; transition: all 0.3s ease; display:block; }
+.logoText { font-weight:500; color: var(--pleno-primary); letter-spacing:-0.5px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; line-height:1; white-space:nowrap; }
+
+/* Tamaños */
+.small { gap:10px; padding:4px 4px; }
+.small .logoIcon { width:34px; height:34px; }
+.small .bar1 { width:22px; height:3px; top:6px; left:6px; }
+.small .bar2 { width:18px; height:3px; top:13px; left:8px; }
+.small .bar3 { width:28px; height:3px; top:20px; left:4px; }
+.small .bar4 { width:14px; height:3px; top:27px; left:10px; }
+.small .logoText { font-size:28px; font-weight:600; }
+
+.default { gap:16px; padding:32px 48px; }
+.default .logoIcon { width:48px; height:48px; }
+.default .bar1 { width:32px; height:4px; top:8px; left:8px; }
+.default .bar2 { width:24px; height:4px; top:18px; left:12px; }
+.default .bar3 { width:40px; height:4px; top:28px; left:4px; }
+.default .bar4 { width:16px; height:4px; top:38px; left:16px; }
+.default .logoText { font-size:36px; }
+
+.large { gap:24px; padding:48px 64px; }
+.large .logoIcon { width:64px; height:64px; }
+.large .bar1 { width:42px; height:5px; top:11px; left:11px; }
+.large .bar2 { width:32px; height:5px; top:24px; left:16px; }
+.large .bar3 { width:53px; height:5px; top:37px; left:5px; }
+.large .bar4 { width:21px; height:5px; top:50px; left:21px; }
+.large .logoText { font-size:48px; }
+
+.horizontal { flex-direction:row; }
+.vertical { flex-direction:column; text-align:center; }
+.vertical .logoText { margin-top:8px; }
+.iconOnly { padding:12px; }
+.iconOnly.small { padding:12px; }
+.iconOnly.large { padding:32px; }
+
+.frameless { background: transparent !important; box-shadow: none !important; }
+
+/* Hover animación */
+.logo:hover .bar1 { transform: translateX(2px); }
+.logo:hover .bar2 { transform: translateX(-2px); }
+.logo:hover .bar3 { transform: translateX(2px); }
+.logo:hover .bar4 { transform: translateX(3px); }
+
+@media (max-width:768px){
+  .default { padding:24px 32px; gap:12px; }
+  .default .logoText { font-size:28px; }
+  .large { padding:32px 48px; gap:16px; }
+  .large .logoText { font-size:36px; }
+}
