@@ -10,12 +10,8 @@ import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "@
 
 export const historialVentasRouter = createTRPCRouter({
   getMany: protectedProcedure
-    .input(z.object({
-      page: z.number().default(DEFAULT_PAGE),
-      pageSize: z.number().min(MIN_PAGE_SIZE).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
-    }))
-    .query(async ({ input, ctx }) => {
-      const { page, pageSize } = input;
+    .input(z.void())
+    .query(async ({ ctx }) => {
 
       const salesByDate = await db
         .select({
@@ -33,8 +29,6 @@ export const historialVentasRouter = createTRPCRouter({
         )
         .groupBy(sql`DATE(${sales.saleDate})`)
         .orderBy(desc(sql`DATE(${sales.saleDate})`))
-        .limit(pageSize)
-        .offset((page - 1) * pageSize);
 
       const enrichedData = await Promise.all(salesByDate.map(async (day) => {
         const [topProduct] = await db
@@ -57,25 +51,74 @@ export const historialVentasRouter = createTRPCRouter({
 
         return {
           ...day,
-          topProduct: topProduct || null
+          topProduct: topProduct || null,
         };
       }));
 
-      const [total] = await db
-        .select({
-          count: sql<number>`COUNT(DISTINCT DATE(${sales.saleDate}))`
-        })
-        .from(sales)
-        .where(eq(sales.tenantId, ctx.auth.user.tenant_id));
+      const now = new Date();
+      const targetMonth = now.getMonth();
+      const targetYear = now.getFullYear();
 
-      const totalPages = Math.ceil((total.count) / pageSize);
+      const getEntriesForMonth = (year: number, month: number) => {
+        return enrichedData.filter((day) => {
+          const entryDate = new Date(`${day.date}T00:00:00`);
+          return (
+            entryDate.getMonth() === month &&
+            entryDate.getFullYear() === year
+          );
+        });
+      };
 
+      const toNumber = (value: number | string | null | undefined) => {
+        if (typeof value === "number") {
+          return value;
+        }
+        if (typeof value === "string") {
+          const parsed = Number(value);
+          return Number.isNaN(parsed) ? 0 : parsed;
+        }
+        return 0;
+      };
+
+      const getTotals = (entries: typeof enrichedData) => {
+        const total = entries.reduce((sum, day) => sum + toNumber(day.totalDia), 0);
+        const average = entries.length > 0 ? total / entries.length : 0;
+        return { total, average };
+      };
+
+      const currentMonthEntries = getEntriesForMonth(targetYear, targetMonth);
+
+      const previousReferenceDate = new Date(targetYear, targetMonth, 1);
+      previousReferenceDate.setMonth(previousReferenceDate.getMonth() - 1);
+      const previousMonth = previousReferenceDate.getMonth();
+      const previousYear = previousReferenceDate.getFullYear();
+      const previousMonthEntries = getEntriesForMonth(previousYear, previousMonth);
+
+      const { total: monthlyTotal, average: dailyAverage } = getTotals(currentMonthEntries);
+      const { total: previousMonthTotal, average: previousMonthAverage } = getTotals(previousMonthEntries);
+
+      const bestDayEntry = currentMonthEntries.reduce<(typeof currentMonthEntries)[number] | null>((best, day) => {
+        if (best === null || day.totalDia > best.totalDia) {
+          return day;
+        }
+        return best;
+      }, null);
 
       return {
         items: enrichedData,
-        page,
-        pageSize,
-        totalPages,
+        metrics: {
+          monthlyTotal,
+          dailyAverage,
+          previousMonthTotal,
+          previousMonthAverage,
+          bestDay: bestDayEntry
+            ? {
+                amount: bestDayEntry.totalDia,
+                date: bestDayEntry.date,
+              }
+            : null,
+        },
       };
     }),
 });
+

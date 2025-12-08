@@ -10,12 +10,8 @@ import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, MIN_PAGE_SIZE } from "@
 
 export const stockProductosRouter = createTRPCRouter({
   getMany: protectedProcedure
-    .input(z.object({
-      page: z.number().default(DEFAULT_PAGE),
-      pageSize: z.number().min(MIN_PAGE_SIZE).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
-    }))
+    .input(z.void())
     .query(async ({ input, ctx }) => {
-      const { page, pageSize } = input
 
       const data = await db
         .select({
@@ -33,22 +29,12 @@ export const stockProductosRouter = createTRPCRouter({
       `,
         })
         .from(products)
-        .leftJoin(categories, eq(products.categoryId, categories.id))
-        .leftJoin(inventory, eq(products.id, inventory.productId))
+        .innerJoin(categories, eq(products.categoryId, categories.id))
+        .innerJoin(inventory, eq(products.id, inventory.productId))
         .where(eq(products.tenantId, ctx.auth.user.tenant_id))
-        .limit(pageSize).offset((page - 1) * pageSize)
-
-      const [total] = await db
-        .select({ count: count() })
-        .from(products)
-        .where(eq(products.tenantId, ctx.auth.user.tenant_id));
-
-      const totalPages = Math.ceil(total.count / pageSize)
 
       return {
         items: data,
-        total: total.count,
-        totalPages,
       }
     }),
 });

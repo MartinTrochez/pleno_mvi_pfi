@@ -21,20 +21,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TableFiltersStockProductos } from "./data-filters-stock-productos";
-import { rankItem } from "@tanstack/match-sorter-utils";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
-
-const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  addMeta({ itemRank });
-
-  return itemRank.passed;
-};
 
 export function DataTable<TData, TValue>({
   columns,
@@ -49,9 +42,6 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter,
-    },
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getSortedRowModel: getSortedRowModel(),
@@ -124,6 +114,33 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
+      </div>
+      <div className="flex items-center justify-between text-sm text-[#B5B6BA]">
+        <div className="flex-1 text-center">
+          Mostrando {firstRow}-{lastRow} de{" "}
+          {table.getRowCount().toLocaleString()} productos
+        </div>
+
+        <div className="flex items-center border rounded-md overflow-hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="rounded-none border-r bg-white"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="rounded-none border-r bg-white"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

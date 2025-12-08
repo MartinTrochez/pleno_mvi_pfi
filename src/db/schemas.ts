@@ -81,7 +81,7 @@ export const verification = pgTable("verification", {
 });
 
 export const tenants = pgTable('tenants', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
+  id: serial("id").primaryKey(),
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   domainName: text('domain_name'),
@@ -97,7 +97,7 @@ export const tenants = pgTable('tenants', {
 });
 
 export const tenantSettings = pgTable('tenant_settings', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
+  id: serial("id").primaryKey(),
   tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
   currency: text('currency').default('ars'),
   timezone: text('timezone').default('america/argentina/buenos_aires'),
@@ -111,7 +111,7 @@ export const tenantSettings = pgTable('tenant_settings', {
 });
 
 export const categories = pgTable('categories', {
-  id: bigint('id', { mode: 'number' }),
+  id: serial("id").primaryKey(),
   tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
   name: text('name').notNull(),
   description: text('description'),
@@ -125,7 +125,7 @@ export const categories = pgTable('categories', {
 });
 
 export const suppliers = pgTable('suppliers', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
+  id: serial("id").primaryKey(),
   tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
   name: text('name').notNull(),
   contactName: text('contact_name'),
@@ -142,7 +142,7 @@ export const suppliers = pgTable('suppliers', {
 });
 
 export const products = pgTable('products', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
+  id: serial("id").primaryKey(),
   tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
   sku: text('sku').notNull(),
   barcode: text('barcode'),
@@ -167,17 +167,18 @@ export const products = pgTable('products', {
 });
 
 export const inventory = pgTable('inventory', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
+  id: serial("id").primaryKey(),
   tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
-  productId: bigint('product_id', { mode: 'number' }).notNull(),
+  productId: bigint('product_id', { mode: 'number' }).notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
   quantity: decimal('quantity', { precision: 12, scale: 4 }).default("0"),
   reservedQuantity: decimal('reserved_quantity', { precision: 12, scale: 4 }).default("0"),
   lastUpdated: timestamp('last_updated').defaultNow()
 });
 
 export const customers = pgTable('customers', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
-  tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
+  id: serial("id").primaryKey(),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
   code: text('code'),
   firstName: text('first_name'),
   lastName: text('last_name'),
@@ -195,11 +196,11 @@ export const customers = pgTable('customers', {
 });
 
 export const sales = pgTable('sales', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
-  tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
+  id: serial("id").primaryKey(),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
   saleNumber: text('sale_number').notNull(),
-  customerId: bigint('customer_id', { mode: 'number' }),
-  userId: bigint('user_id', { mode: 'number' }).notNull(),
+  customerId: bigint('customer_id', { mode: 'number' }).references(() => customers.id, { onDelete: "cascade" }),
+  userId: bigint('user_id', { mode: 'number' }).notNull().references(() => users.id, { onDelete: "cascade" }),
   saleDate: timestamp('sale_date').notNull(),
   subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull().default("0"),
   taxAmount: decimal('tax_amount', { precision: 12, scale: 2 }).notNull().default("0"),
@@ -214,8 +215,8 @@ export const sales = pgTable('sales', {
 
 // sale_items table
 export const saleItems = pgTable('sale_items', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
-  tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
+  id: serial("id").primaryKey(),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
   saleId: bigint('sale_id', { mode: 'number' }).notNull(),
   productId: bigint('product_id', { mode: 'number' }).notNull(),
   quantity: decimal('quantity', { precision: 12, scale: 4 }).notNull(),
@@ -226,8 +227,8 @@ export const saleItems = pgTable('sale_items', {
 });
 
 export const inventoryMovements = pgTable('inventory_movements', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
-  tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
+  id: serial("id").primaryKey(),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
   productId: bigint('product_id', { mode: 'number' }).notNull(),
   movementType: text('movement_type').notNull(),
   quantity: decimal('quantity', { precision: 12, scale: 4 }).notNull(),
@@ -241,7 +242,7 @@ export const inventoryMovements = pgTable('inventory_movements', {
 });
 
 export const purchases = pgTable('purchases', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
+  id: serial("id").primaryKey(),
   tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
   purchaseNumber: text('purchase_number').notNull(),
   supplierId: bigint('supplier_id', { mode: 'number' }),
@@ -257,8 +258,8 @@ export const purchases = pgTable('purchases', {
 });
 
 export const purchaseItems = pgTable('purchase_items', {
-  id: bigint('id', { mode: 'number' }).primaryKey(),
-  tenantId: bigint('tenant_id', { mode: 'number' }).notNull(),
+  id: serial("id").primaryKey(),
+  tenantId: bigint('tenant_id', { mode: 'number' }).notNull().references(() => tenants.id, { onDelete: "cascade" }),
   purchaseId: bigint('purchase_id', { mode: 'number' }).notNull(),
   productId: bigint('product_id', { mode: 'number' }).notNull(),
   quantityOrdered: decimal('quantity_ordered', { precision: 12, scale: 4 }).notNull(),

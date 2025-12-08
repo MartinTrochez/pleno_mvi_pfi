@@ -4,17 +4,12 @@ import { DataTable } from "../components/data-table-stock-productos";
 import { columns, StockProductos } from "../components/columns";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useStockProductosFilters } from "../../hooks/use-stock-productos-filter";
-import { DataPaginationStockProductos } from "../components/data-table-pagination-stock-productos";
 
 export const StockProductosView = () => {
-  const [filters, setFilters] = useStockProductosFilters();
 
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
-    trpc.stockProductos.getMany.queryOptions({
-      ...filters,
-    }),
+    trpc.stockProductos.getMany.queryOptions(),
   );
 
   const stockProductos: StockProductos[] = data.items.map((item) => ({
@@ -33,12 +28,6 @@ export const StockProductosView = () => {
       </h1>
       <div className="p-8 space-y-4">
         <DataTable data={stockProductos} columns={columns} />
-        <DataPaginationStockProductos
-          page={filters.page}
-          totalPages={data.totalPages}
-          total={data.total}
-          onPageChange={(page) => setFilters({ page })}
-        />
       </div>
     </div>
   );

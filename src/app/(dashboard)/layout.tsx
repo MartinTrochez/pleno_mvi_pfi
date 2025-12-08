@@ -5,15 +5,11 @@ import { DashboardNavbar } from "@/modules/dashboard/ui/components/dashboard-nav
 import { DashboardSidebar } from "@/modules/dashboard/ui/components/dashboard-sidebar";
 import { getQueryClient, trpc } from "@/trpc/server";
 
-export const dynamic = 'force-dynamic';
-
 interface Props {
   children: React.ReactNode;
 }
 
 const Layout = ({ children }: Props) => {
-  const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(trpc.tenantName.getTenantName.queryOptions());
 
   return (
     <SidebarProvider>

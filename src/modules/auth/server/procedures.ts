@@ -4,11 +4,9 @@ import { users } from "@/db/schemas";
 import {
   baseProcedure,
   createTRPCRouter,
-  protectedProcedure,
 } from "@/trpc/init";
 import z from "zod";
 import { TRPCError } from "@trpc/server";
-import { auth } from "@/lib/auth";
 
 export const createAccountRouter = createTRPCRouter({
   getUser: baseProcedure
@@ -27,5 +25,5 @@ export const createAccountRouter = createTRPCRouter({
 
       return existingUser.name;
     }),
-});
 
+});

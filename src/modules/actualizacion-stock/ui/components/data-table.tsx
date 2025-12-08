@@ -23,14 +23,31 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { TableFilters } from "./data-filter"
 
+type OnStockUpdateHandler = (productId: number, adjustment: number | null) => void
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  onStockUpdate?: OnStockUpdateHandler
+  pendingAdjustments?: Record<number, number>
+  onSaveChanges?: () => void
+  onDiscardChanges?: () => void
+  isSaving?: boolean
+}
+
+type DataTableMeta = {
+  onStockUpdate?: OnStockUpdateHandler
+  pendingAdjustments?: Record<number, number>
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onStockUpdate,
+  pendingAdjustments,
+  onSaveChanges,
+  onDiscardChanges,
+  isSaving = false,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [pagination, setPagination] = useState<PaginationState>({
@@ -51,10 +68,15 @@ export function DataTable<TData, TValue>({
       columnFilters,
       pagination,
     },
+    meta: {
+      onStockUpdate,
+      pendingAdjustments,
+    } as DataTableMeta,
   })
 
   const firstRow = pagination.pageIndex * pagination.pageSize + 1
   const lastRow = Math.min(firstRow + table.getRowModel().rows.length - 1, table.getRowCount())
+  const hasPendingAdjustments = Boolean(pendingAdjustments && Object.keys(pendingAdjustments).length > 0)
 
 
   return (
@@ -62,8 +84,19 @@ export function DataTable<TData, TValue>({
       <div className="flex justify-between items-center min-w-6xl">
         <TableFilters table={table} data={data} />
         <div className="space-x-4">
-          <Button>Guardar Cambios</Button>
-          <Button variant="destructive">Descartar Cambios</Button>
+          <Button
+            onClick={() => onSaveChanges?.()}
+            disabled={!hasPendingAdjustments || isSaving}
+          >
+            Guardar Cambios
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => onDiscardChanges?.()}
+            disabled={!hasPendingAdjustments || isSaving}
+          >
+            Descartar Cambios
+          </Button>
         </div>
       </div>
 

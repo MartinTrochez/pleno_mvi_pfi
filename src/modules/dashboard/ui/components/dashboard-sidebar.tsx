@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  PackageIcon,        
-  RefreshCwIcon,      
-  ShoppingCartIcon,   
-  BarChart3Icon,      
-  UsersIcon,          
-  SettingsIcon,       
-  UserIcon,           
-  LogOutIcon          
-} from 'lucide-react';
+  PackageIcon,
+  RefreshCwIcon,
+  ShoppingCartIcon,
+  BarChart3Icon,
+  UsersIcon,
+  SettingsIcon,
+  UserIcon,
+  LogOutIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -26,7 +26,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
+import { authClient } from "@/lib/auth-client";
 
 const firstSection = [
   {
@@ -71,16 +71,31 @@ const secondSection = [
     icon: LogOutIcon,
     label: "Salir",
     href: "/sign-in",
-  }
+  },
 ];
 
 export const DashboardSidebar = () => {
+  const router = useRouter();
   const pathname = usePathname();
+
+  const onLogout = () => {
+    authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/sign-in");
+        },
+      },
+    });
+  };
 
   return (
     <Sidebar>
       <SidebarHeader className="text-sidebar-accent-foreground">
-        <Link href="/" aria-label="Inicio Pleno" className="flex justify-center">
+        <Link
+          href="/"
+          aria-label="Inicio Pleno"
+          className="flex justify-center"
+        >
           <PlenoLogo />
         </Link>
       </SidebarHeader>
@@ -97,17 +112,24 @@ export const DashboardSidebar = () => {
                     asChild
                     className={cn(
                       "h-10 hover:bg-sidebar-accent/15 border border-transparent hover:border-[#5D6B68]/10 from-sidebar-accent from-5% via-30% via-sidebar/50 to-sidebar/50",
-                      pathname === item.href && "bg-primary border-[#5D6B68]/10"
+                      pathname === item.href &&
+                        "bg-primary border-[#5D6B68]/10",
                     )}
                     isActive={pathname === item.href}
                   >
                     <Link href={item.href}>
-                      <item.icon className={cn("size-5",  
-                          pathname === item.href && "text-white")}
+                      <item.icon
+                        className={cn(
+                          "size-5",
+                          pathname === item.href && "text-white",
+                        )}
                       />
-                      <span className={cn("text-sm font-medium tracking-tight",
-                          pathname === item.href && "text-white"
-                      )}>
+                      <span
+                        className={cn(
+                          "text-sm font-medium tracking-tight",
+                          pathname === item.href && "text-white",
+                        )}
+                      >
                         {item.label}
                       </span>
                     </Link>
@@ -125,23 +147,41 @@ export const DashboardSidebar = () => {
             <SidebarMenu>
               {secondSection.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    className={cn(
-                      "h-10 hover:bg-sidebar-accent/15 border border-transparent hover:border-[#5D6B68]/10 from-sidebar-accent from-5% via-30% via-sidebar/50 to-sidebar/50",
-                      pathname === item.href && "bg-primary border-[#5D6B68]/10"
-                    )}
-                    isActive={pathname === item.href}
-                  >
-                    <Link href={item.href}>
+                  {item.label === "Salir" ? (
+                    <SidebarMenuButton
+                      className={cn(
+                        "h-10 hover:bg-sidebar-accent/15 border border-transparent hover:border-[#5D6B68]/10",
+                      )}
+                      onClick={onLogout}
+                    >
                       <item.icon className="size-5" />
-                      <span className={cn("text-sm font-medium tracking-tight",
-                          pathname === item.href && "text-white"
-                      )}>
+                      <span className="text-sm font-medium tracking-tight">
                         {item.label}
                       </span>
-                    </Link>
-                  </SidebarMenuButton>
+                    </SidebarMenuButton>
+                  ) : (
+                    <SidebarMenuButton
+                      asChild
+                      className={cn(
+                        "h-10 hover:bg-sidebar-accent/15 border border-transparent hover:border-[#5D6B68]/10",
+                        pathname === item.href &&
+                          "bg-primary border-[#5D6B68]/10",
+                      )}
+                      isActive={pathname === item.href}
+                    >
+                      <Link href={item.href}>
+                        <item.icon className="size-5" />
+                        <span
+                          className={cn(
+                            "text-sm font-medium tracking-tight",
+                            pathname === item.href && "text-white",
+                          )}
+                        >
+                          {item.label}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -149,5 +189,5 @@ export const DashboardSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
-}
+  );
+};

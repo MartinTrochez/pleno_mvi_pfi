@@ -27,38 +27,38 @@ export function DateFilters<TData>({ table, dateColumn }: DateFiltersProps<TData
     from: null,
     to: null,
   })
-  
-  const today = startOfDay(new Date()) 
-  
+
+  const today = startOfDay(new Date())
+
   const quickFilters = [
     { label: "Última semana", range: { from: subWeeks(today, 1), to: today } },
     { label: "Último mes", range: { from: subMonths(today, 1), to: today } },
     { label: "Últimos 3 meses", range: { from: subMonths(today, 3), to: today } },
   ]
-  
+
   const applyDateFilter = (from: Date | null, to: Date | null) => {
     setDateRange({ from, to })
     table.getColumn(dateColumn)?.setFilterValue(from && to ? { from: startOfDay(from), to: endOfDay(to) } : undefined)
   }
-  
+
   const column = table.getColumn(dateColumn)
   if (column && !column.columnDef.filterFn) {
     column.columnDef.filterFn = (row, columnId, filterValue) => {
       if (!filterValue) return true
-      
+
       const rowValue = row.getValue(columnId)
       const cellDate = rowValue instanceof Date ? rowValue : new Date(rowValue as string)
-      
+
       const { from, to } = filterValue as { from: Date; to: Date }
       if (!from || !to) return true
-      
-      return isWithinInterval(cellDate, { 
-        start: from, 
-        end: to 
+
+      return isWithinInterval(cellDate, {
+        start: from,
+        end: to
       })
     }
   }
-  
+
   const hasActiveFilter = dateRange.from && dateRange.to
   
   return (
@@ -68,20 +68,20 @@ export function DateFilters<TData>({ table, dateColumn }: DateFiltersProps<TData
         <span className="text-sm text-black">Filtrar por fecha:</span>
       </div>
       
-      <div className="flex items-center gap-2">
-        {quickFilters.map((filter) => (
-          <Button
-            key={filter.label}
-            variant="outline"
-            onClick={() => applyDateFilter(filter.range.from, filter.range.to)}
-            className={`text-sm ${
-              dateRange.from && isSameDay(dateRange.from, filter.range.from) ? "bg-gray-100" : ""
-            }`}
-          >
-            {filter.label}
-          </Button>
-        ))}
-      </div>
+       <div className="flex items-center gap-2">
+         {quickFilters.map((filter) => (
+           <Button
+             key={filter.label}
+             variant="outline"
+             onClick={() => applyDateFilter(filter.range.from, filter.range.to)}
+             className={`text-sm ${
+               dateRange.from && isSameDay(dateRange.from, filter.range.from) ? "bg-gray-100" : ""
+             }`}
+           >
+             {filter.label}
+           </Button>
+         ))}
+       </div>
       
       <div className="h-6 w-px bg-[#E5E5E5]" />
       

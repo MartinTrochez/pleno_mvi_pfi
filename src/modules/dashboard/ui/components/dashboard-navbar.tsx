@@ -4,17 +4,9 @@ import { PanelLeftCloseIcon, PanelLeftIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
-import { useTRPC } from "@/trpc/client";
-import {  useSuspenseQuery } from "@tanstack/react-query";
 
 export const DashboardNavbar =() => {
   const { state, toggleSidebar, isMobile } = useSidebar();
-
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.tenantName.getTenantName.queryOptions(),
-  );
-  console.log(data)
 
   return (
     <nav className="grid grid-cols-3 items-center py-3 border-b bg-background">
@@ -26,7 +18,7 @@ export const DashboardNavbar =() => {
           }
         </Button>
       </div>
-      <p className="text-center font-semibold text-2xl">{data}</p>
+      <p className="text-center font-semibold text-2xl">Comercio Supermercado</p>
     </nav>
   )
 }
