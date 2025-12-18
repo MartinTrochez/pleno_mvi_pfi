@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User2Icon } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   Form,
@@ -14,9 +15,10 @@ import {
   FormMessage,
 } from "../../../../components/ui/form";
 import { Input } from "../../../../components/ui/input";
+import { Button } from "../../../../components/ui/button";
 import { cn } from "../../../../lib/utils";
 import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 
 const perfilSchema = z.object({
   nombres: z.string().trim().min(1, "Ingrese sus nombres"),
@@ -30,6 +32,7 @@ export type PerfilFormValues = z.infer<typeof perfilSchema>;
 
 export const PerfilView = () => {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const { data } = useSuspenseQuery(trpc.perfil.get.queryOptions());
 
   const defaultValues: PerfilFormValues = {
@@ -46,6 +49,30 @@ export const PerfilView = () => {
     mode: "onBlur",
   });
 
+  const updateMutation = useMutation({
+    ...trpc.perfil.update.mutationOptions(),
+    onSuccess: async () => {
+      toast.success("Perfil actualizado correctamente");
+      await queryClient.invalidateQueries({
+        queryKey: trpc.perfil.get.queryKey(),
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Error al actualizar el perfil");
+    },
+  });
+
+  const onSubmit = (values: PerfilFormValues) => {
+    updateMutation.mutate({
+      nombres: values.nombres,
+      apellidos: values.apellidos,
+      email: values.email,
+    });
+  };
+
+  const isDirty = form.formState.isDirty;
+  const isSubmitting = updateMutation.isPending;
+
   return (
     <div className={cn("p-6 md:p-8")}>
       <div className="space-y-6 max-w-6xl mx-auto w-full">
@@ -58,7 +85,7 @@ export const PerfilView = () => {
           </div>
           <Form {...form}>
             <form
-              onSubmit={() => {}}
+              onSubmit={form.handleSubmit(onSubmit)}
               className="grid gap-8 max-w-2xl mx-auto"
             >
               <div className="grid md:grid-cols-2 gap-6">
@@ -110,7 +137,7 @@ export const PerfilView = () => {
                     <FormItem>
                       <FormLabel>DNI</FormLabel>
                       <FormControl>
-                        <Input role="number" placeholder="" {...field} />
+                        <Input role="number" placeholder="" disabled {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -123,12 +150,17 @@ export const PerfilView = () => {
                     <FormItem>
                       <FormLabel>Rol</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="" {...field} />
+                        <Input type="text" placeholder="" disabled {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={!isDirty || isSubmitting}>
+                  {isSubmitting ? "Guardando..." : "Guardar Cambios"}
+                </Button>
               </div>
             </form>
           </Form>

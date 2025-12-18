@@ -7,6 +7,7 @@ import { historialVentasRouter } from '@/modules/historial-ventas/server/procedu
 import { tenantNameRouter } from '@/modules/dashboard/server/procedures';
 import { homeRouter } from '@/modules/home/server/procedures';
 import { actualizacionStockRouter } from '@/modules/actualizacion-stock/server/procedures';
+import { cargaVentasRouter } from '@/modules/carga-ventas/server/procedures';
 
 export const appRouter = createTRPCRouter({
   createAccount: createAccountRouter,
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   tenantName: tenantNameRouter,
   home: homeRouter,
   actualizacionStock: actualizacionStockRouter,
+  cargaVentas: cargaVentasRouter,
 });
 
 export type AppRouter = typeof appRouter;

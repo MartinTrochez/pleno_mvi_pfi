@@ -20,11 +20,10 @@ export const actualizacionStockRouter = createTRPCRouter({
           cantidad: inventory.quantity,
         })
         .from(products)
-        .innerJoin(categories, eq(products.categoryId, categories.id))
+        .leftJoin(categories, eq(products.categoryId, categories.id))
         .innerJoin(inventory, eq(products.id, inventory.productId))
         .where(and(
           eq(products.tenantId, ctx.auth.user.tenant_id),
-          eq(products.isActive, true)
         )).orderBy(products.id)
 
       const [total] = await db
@@ -32,7 +31,6 @@ export const actualizacionStockRouter = createTRPCRouter({
         .from(products)
         .where(and(
           eq(products.tenantId, ctx.auth.user.tenant_id),
-          eq(products.isActive, true)
         ));
 
 

@@ -11,6 +11,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   PaginationState,
+  SortingState,
 } from "@tanstack/react-table"
 import {
   Table,
@@ -34,6 +35,7 @@ export function DataTableHistorialVentas<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -45,11 +47,13 @@ export function DataTableHistorialVentas<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
     state: {
       columnFilters,
+      sorting,
       pagination,
     },
   })
@@ -109,7 +113,7 @@ export function DataTableHistorialVentas<TData, TValue>({
       </div>
       <div className="flex items-center justify-between text-sm text-[#B5B6BA]">
         <div className="flex-1 text-center">
-          Mostrando {firstRow}-{lastRow} de {table.getRowCount().toLocaleString()} Ventas Diaras
+          Mostrando {firstRow}-{lastRow} de {table.getRowCount().toLocaleString("es-AR")} Ventas Diarias
         </div>
 
         <div className="flex items-center border rounded-md overflow-hidden">

@@ -98,10 +98,12 @@ export const historialVentasRouter = createTRPCRouter({
       const { total: previousMonthTotal, average: previousMonthAverage } = getTotals(previousMonthEntries);
 
       const bestDayEntry = currentMonthEntries.reduce<(typeof currentMonthEntries)[number] | null>((best, day) => {
-        if (best === null || day.totalDia > best.totalDia) {
+        const dayTotal = toNumber(day.totalDia);
+        if (best === null) {
           return day;
         }
-        return best;
+        const bestTotal = toNumber(best.totalDia);
+        return dayTotal > bestTotal ? day : best;
       }, null);
 
       return {

@@ -1,19 +1,17 @@
 import { StockProductosView } from "@/modules/stock-productos/ui/views/stock-productos-views";
-import { requireAdminAuth, requireAuth } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 import { getQueryClient, trpc } from "@/trpc/server";
-import { SearchParams } from "nuqs";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 
-interface Props {
-  searchParams: Promise<SearchParams>;
-}
-
-export default async function StockProductosPage({ searchParams }: Props) {
+export default async function StockProductosPage() {
   await requireAuth();
 
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(
-    trpc.stockProductos.getMany.queryOptions(),
-  );
+  await queryClient.prefetchQuery(trpc.stockProductos.getMany.queryOptions());
 
-  return <StockProductosView />;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <StockProductosView />
+    </HydrationBoundary>
+  );
 }

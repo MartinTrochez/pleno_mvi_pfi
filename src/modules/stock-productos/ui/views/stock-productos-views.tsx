@@ -6,17 +6,14 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const StockProductosView = () => {
-
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(
-    trpc.stockProductos.getMany.queryOptions(),
-  );
+  const { data } = useSuspenseQuery(trpc.stockProductos.getMany.queryOptions());
 
   const stockProductos: StockProductos[] = data.items.map((item) => ({
     id: item.id,
     nombre: item.nombre,
     codigoBarra: item.codigoBarra,
-    categoria: item.categoria,
+    categoria: item.categoria || "Sin Clasificar",
     cantidad: Number(item.cantidad),
     prioridad: item.prioridad,
   })) as StockProductos[];

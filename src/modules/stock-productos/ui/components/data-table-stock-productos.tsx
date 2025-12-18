@@ -10,8 +10,9 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   PaginationState,
-  FilterFn,
+  SortingState,
 } from "@tanstack/react-table";
+import { globalFuzzyFilter } from "@/lib/fuzzy-filter";
 import {
   Table,
   TableBody,
@@ -34,24 +35,34 @@ export function DataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
 
-  const table = useReactTable({
+const table = useReactTable({
     data,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPagination,
+    filterFns: {
+      fuzzy: globalFuzzyFilter,
+    },
+    globalFilterFn: globalFuzzyFilter,
     state: {
       columnFilters,
+      globalFilter,
+      sorting,
       pagination,
     },
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
   });
 
   const firstRow = pagination.pageIndex * pagination.pageSize + 1;
@@ -118,7 +129,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center justify-between text-sm text-[#B5B6BA]">
         <div className="flex-1 text-center">
           Mostrando {firstRow}-{lastRow} de{" "}
-          {table.getRowCount().toLocaleString()} productos
+          {table.getRowCount().toLocaleString("es-AR")} productos
         </div>
 
         <div className="flex items-center border rounded-md overflow-hidden">

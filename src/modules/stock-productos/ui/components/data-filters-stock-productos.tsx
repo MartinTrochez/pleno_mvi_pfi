@@ -1,65 +1,95 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Table } from "@tanstack/react-table"
+import { useEffect, useRef, useState } from "react";
+import { Table } from "@tanstack/react-table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Filter, SearchIcon, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Filter, SearchIcon, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface TableFiltersProps<TData> {
-  table: Table<TData>
-  data: TData[]
+  table: Table<TData>;
+  data: TData[];
 }
 
-export function TableFiltersStockProductos<TData>({ table, data }: TableFiltersProps<TData>) {
-  const [searchValue, setSearchValue] = useState("")
+export function TableFiltersStockProductos<TData>({
+  table,
+  data,
+}: TableFiltersProps<TData>) {
+  const [searchValue, setSearchValue] = useState("");
+  const isMac = navigator.userAgent.includes("Mac");
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const cantidades = Array.from(new Set(data.map((item: any) => item.cantidad))).sort((a, b) => a - b)
-  const categorias = Array.from(new Set(data.map((item: any) => item.categoria)))
-  const prioridades = ["Alta", "Media", "Baja"]
+  const cantidades = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  const categorias = Array.from(
+    new Set(data.map((item: any) => item.categoria)),
+  );
+  const prioridades = ["Alta", "Media", "Baja"];
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
 
   const handleSearch = (value: string) => {
-    setSearchValue(value)
-    table.getColumn("nombre")?.setFilterValue(value)
-  }
+    setSearchValue(value);
+    table.setGlobalFilter(value);
+  };
 
   const handleCantidadFilter = (value: string) => {
-    table.getColumn("cantidad")?.setFilterValue(value === "all" ? "" : value)
-  }
+    table.getColumn("cantidad")?.setFilterValue(value === "all" ? "" : value);
+  };
 
   const handleCategoriaFilter = (value: string) => {
-    table.getColumn("categoria")?.setFilterValue(value === "all" ? "" : value)
-  }
+    table.getColumn("categoria")?.setFilterValue(value === "all" ? "" : value);
+  };
 
   const handlePrioridadFilter = (value: string) => {
-    table.getColumn("prioridad")?.setFilterValue(value === "all" ? "" : value)
-  }
+    table.getColumn("prioridad")?.setFilterValue(value === "all" ? "" : value);
+  };
 
   const clearFilters = () => {
-    setSearchValue("")
-    table.resetColumnFilters()
-  }
+    setSearchValue("");
+    table.resetColumnFilters();
+    table.setGlobalFilter("");
+  };
 
-  const hasActiveFilters = table.getState().columnFilters.length > 0 || searchValue !== ""
+  const hasActiveFilters =
+    table.getState().columnFilters.length > 0 || table.getState().globalFilter;
 
   return (
     <div className="flex items-center gap-3 bg-white p-3 rounded-lg border">
-
       <div className="flex items-center gap-2 flex-1">
         <SearchIcon className="text-[#A4A4A5]" />
-        <Input
-          placeholder="Búsqueda"
-          value={searchValue}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
-        />
+        <div className="relative w-full">
+          <Input
+            ref={searchRef}
+            placeholder="Búsqueda"
+            value={searchValue}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="pr-12"
+          />
+
+          <span
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 
+                   text-xs text-muted-foreground font-mono bg-muted px-1 rounded"
+          >
+            {isMac ? "⌘K" : "Ctrl+K"}
+          </span>
+        </div>
       </div>
 
       <div className="h-6 w-px bg-[#E5E5E5]" />
@@ -125,5 +155,5 @@ export function TableFiltersStockProductos<TData>({ table, data }: TableFiltersP
         </>
       )}
     </div>
-  )
+  );
 }

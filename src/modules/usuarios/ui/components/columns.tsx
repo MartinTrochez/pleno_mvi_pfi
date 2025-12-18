@@ -3,6 +3,7 @@
 import { RoleType } from "@/constants"
 import { ColumnDef } from "@tanstack/react-table"
 import z from "zod"
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
  
 export type Usuarios = {
   id: number
@@ -25,22 +26,32 @@ export type Usuario = z.infer<typeof usuarioSchema>
 export const columns: ColumnDef<Usuario>[] = [
   {
     accessorKey: "id",
-    header: "ID",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="ID" />
+    ),
   },
   {
     accessorKey: "nombre",
-    header: "Nombre",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nombre" />
+    ),
   },
   {
     accessorKey: "apellido",
-    header: "Apellido",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Apellido" />
+    ),
   },
   {
     accessorKey: "dni",
-    header: "DNI",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="DNI" />
+    ),
   },
   {
     accessorKey: "rol",
-    header: "Rol",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Rol" />
+    ),
   },
 ]

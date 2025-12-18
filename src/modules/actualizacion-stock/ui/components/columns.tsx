@@ -3,7 +3,8 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Input } from "@/components/ui/input"
 import { useEffect, useState } from "react"
-
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
+ 
 export type ActualizacionStock = {
   id: number
   nombre: string
@@ -21,27 +22,39 @@ type ColumnMeta = {
 export const columns: ColumnDef<ActualizacionStock>[] = [
   {
     accessorKey: "id",
-    header: "ID",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="ID" />
+    ),
   },
   {
     accessorKey: "nombre",
-    header: "Nombre",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nombre" />
+    ),
   },
   {
     accessorKey: "codigoBarra",
-    header: "Código de Barra",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Código de Barra" />
+    ),
   },
   {
     accessorKey: "categoria",
-    header: "Categoría",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Categoría" />
+    ),
   },
   {
     accessorKey: "cantidad",
-    header: "Cantidad",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cantidad" />
+    ),
   },
   {
     accessorKey: "ajuste",
-    header: "Ajuste",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Ajuste" />
+    ),
     cell: ({ row, table }) => {
       const meta = table.options.meta as ColumnMeta | undefined
       const pendingValue = meta?.pendingAdjustments?.[row.original.id]

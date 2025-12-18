@@ -6,23 +6,13 @@ import { UploadCloud } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { cn } from "../../../../lib/utils";
 import { toast } from "sonner";
+import { useTRPC } from "@/trpc/client";
+import type { ImportResult, VentaItem } from "../../types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface CargaVentasViewProps {
   className?: string;
   onFileAccepted?: (file: File) => void; // para integración futura
-}
-
-// Estructura final solicitada
-export interface VentaItem {
-  fecha: string | null; // tal cual aparece en el Excel
-  hora: string | null; // tal cual aparece en el Excel
-  nroTransaccion: number | null;
-  codigo: string | null;
-  descripcion: string | null;
-  rubro: string | null;
-  cantidad: number | null;
-  precioUnitario: number | null;
-  importe: number | null;
 }
 
 const ACCEPTED_MIME = [
@@ -34,8 +24,14 @@ export const CargaVentasView = ({ className, onFileAccepted }: CargaVentasViewPr
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [parsedData, setParsedData] = useState<VentaItem[] | null>(null);
+  const [summary, setSummary] = useState<ImportResult | null>(null);
+
+const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const importMutation = useMutation(
+    trpc.cargaVentas.importar.mutationOptions(),
+  );
 
   const validateFile = (f: File) => {
     const ext = f.name.split(".").pop()?.toLowerCase();
@@ -79,9 +75,9 @@ export const CargaVentasView = ({ className, onFileAccepted }: CargaVentasViewPr
       cantidad: "cantidad",
       qty: "cantidad",
       unidades: "cantidad",
-      "precio_unitario": "precioUnitario",
-      precio: "precioUnitario",
-      unit_price: "precioUnitario",
+      "precio_unitario": "unitario",
+      precio: "unitario",
+      unit_price: "unitario",
       importe: "importe",
       total: "importe",
       monto: "importe",
@@ -160,10 +156,10 @@ export const CargaVentasView = ({ className, onFileAccepted }: CargaVentasViewPr
           const codigo = toStr(r.codigo ?? null);
           const descripcion = toStr(r.descripcion ?? null);
           const rubro = toStr(r.rubro ?? null);
-          const cantidad = toInt(r.cantidad ?? null);
-          const precioUnitario = toNum(r.precioUnitario ?? null);
+          const cantidad = toNum(r.cantidad ?? null);
+          const unitario = toNum(r.unitario ?? null);
           const importe = toNum(r.importe ?? null);
-          return { fecha, hora, nroTransaccion, codigo, descripcion, rubro, cantidad, precioUnitario, importe };
+          return { fecha, hora, nroTransaccion, codigo, descripcion, rubro, cantidad, unitario, importe };
         });
 
         // 3) Validaciones y filtrados
@@ -175,7 +171,7 @@ export const CargaVentasView = ({ className, onFileAccepted }: CargaVentasViewPr
 
         const isAllNull = (v: VentaItem) =>
           v.fecha === null && v.hora === null && v.nroTransaccion === null && v.codigo === null &&
-          v.descripcion === null && v.rubro === null && v.cantidad === null && v.precioUnitario === null && v.importe === null;
+          v.descripcion === null && v.rubro === null && v.cantidad === null && v.unitario === null && v.importe === null;
 
         const validRows = transformed.filter((row) => {
           // Reglas obligatorias
@@ -199,11 +195,13 @@ export const CargaVentasView = ({ className, onFileAccepted }: CargaVentasViewPr
         } else {
           console.log("No se encontraron filas válidas.");
         }
+        
         return validRows;
       } catch (err) {
         console.error("Error parsing Excel file:", err);
         setError("No se pudo leer el archivo Excel");
         setParsedData(null);
+        setSummary(null);
         return null;
       }
     };
@@ -216,10 +214,12 @@ export const CargaVentasView = ({ className, onFileAccepted }: CargaVentasViewPr
       setError(validation);
       setFile(null);
       setParsedData(null);
+      setSummary(null);
       return;
     }
     setError(null);
     setFile(f);
+    setSummary(null);
     onFileAccepted?.(f);
     // parsear inmediatamente para previsualizar y estructurar según DER
     parseExcel(f);
@@ -234,27 +234,48 @@ export const CargaVentasView = ({ className, onFileAccepted }: CargaVentasViewPr
   const onBrowseClick = () => inputRef.current?.click();
 
   const onSubmit = async () => {
-    if (!file) return;
-    try {
-      setUploading(true);
-      // mostrar en consola el resultado final que se enviaría a la BD (según DER)
-      console.log("Final payload a enviar", parsedData);
-      if (parsedData && parsedData.length) {
-        console.table(parsedData.slice(0, 20));
-        console.log("Ejemplo (primer item):", parsedData[0]);
-        console.log("Cantidad de registros:", parsedData.length);
-      }
-      // integrar con endpoint (ej. fetch POST parsedData)
-      await new Promise((r) => setTimeout(r, 700));
-      toast.success("Datos cargados correctamente")
-      // para disparar toast de éxito
-    } catch (e: any) {
-      // para disparar toast de error
-      toast.error(e.message)
-      console.error(e);
-    } finally {
-      setUploading(false);
+    if (!file || !parsedData || parsedData.length === 0) {
+      toast.error("No hay registros válidos para importar");
+      return;
     }
+    try {
+      const result = await importMutation.mutateAsync({
+        items: parsedData.map((item) => ({
+          ...item,
+          nroTransaccion: item.nroTransaccion ?? null,
+          cantidad: item.cantidad ?? null,
+          unitario: item.unitario ?? null,
+        })),
+        metadata: {
+          cashRegister: 1,
+          timezone: "America/Argentina/Buenos_Aires",
+        },
+      });
+      console.log("Resumen importación", {
+      ventas: result.insertedSales,
+      lineas: result.insertedItems,
+      productos: result.createdProducts,
+});
+
+setSummary(result);
+      toast.success(`Importadas ${result.insertedSales} ventas, ${result.insertedItems} líneas`);
+      
+      // Invalidate all related queries to refresh data across the app
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: trpc.historialVentas.getMany.queryKey() }),
+        queryClient.invalidateQueries({ queryKey: trpc.home.getDashboardData.queryKey() }),
+        queryClient.invalidateQueries({ queryKey: trpc.home.getManySales.queryKey() }),
+        queryClient.invalidateQueries({ queryKey: trpc.stockProductos.getMany.queryKey() }),
+        queryClient.invalidateQueries({ queryKey: trpc.actualizacionStock.getMany.queryKey() }),
+      ]);
+
+      setFile(null);
+      setParsedData(null);
+    } catch (e: any) {
+      toast.error(e.message ?? "Error al importar ventas");
+      console.error(e);
+    }
+    
   };
 
   return (
@@ -306,11 +327,18 @@ export const CargaVentasView = ({ className, onFileAccepted }: CargaVentasViewPr
           <Button
             variant="default"
             onClick={onSubmit}
-            disabled={!file || !!error || uploading}
+            disabled={!file || !!error || importMutation.isPending}
             className="mt-10 w-56"
           >
-            {uploading ? "Subiendo..." : "Subir Archivo"}
+            {importMutation.isPending ? "Importando..." : "Importar Ventas"}
           </Button>
+          {summary && (
+            <div className="mt-6 text-sm text-muted-foreground">
+              <p>Ventas importadas: <span className="font-medium text-foreground">{summary.insertedSales}</span></p>
+              <p>Líneas procesadas: <span className="font-medium text-foreground">{summary.insertedItems}</span></p>
+              <p>Productos creados: <span className="font-medium text-foreground">{summary.createdProducts}</span></p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client"
  
 import { ColumnDef } from "@tanstack/react-table"
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
  
 export type StockProductos = {
   id: number
@@ -27,23 +28,33 @@ const getPrioridadStyles = (prioridad: string) => {
 export const columns: ColumnDef<StockProductos>[] = [
   {
     accessorKey: "id",
-    header: "ID",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="ID" />
+    ),
   },
   {
     accessorKey: "nombre",
-    header: "Nombre",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nombre" />
+    ),
   },
   {
     accessorKey: "codigoBarra",
-    header: "Código de Barra",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Código de Barra" />
+    ),
   },
   {
     accessorKey: "categoria",
-    header: "Categoría",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Categoría" />
+    ),
   },
   {
     accessorKey: "cantidad",
-    header: "Cantidad",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cantidad" />
+    ),
     filterFn: (row, columnId, filterValue) => {
       const value = row.getValue<number>(columnId)
       if (!filterValue) return true
@@ -52,7 +63,9 @@ export const columns: ColumnDef<StockProductos>[] = [
   },
   {
     accessorKey: "prioridad",
-    header: "Prioridad",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Prioridad" />
+    ),
     cell: ({ row }) => {
       const prioridad = row.getValue("prioridad") as string
       return (

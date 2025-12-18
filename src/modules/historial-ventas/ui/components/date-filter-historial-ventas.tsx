@@ -9,7 +9,6 @@ import { CalendarIcon, X } from "lucide-react"
 import {
   subWeeks,
   subMonths,
-  isWithinInterval,
   startOfDay,
   endOfDay,
   format,
@@ -39,24 +38,6 @@ export function DateFilters<TData>({ table, dateColumn }: DateFiltersProps<TData
   const applyDateFilter = (from: Date | null, to: Date | null) => {
     setDateRange({ from, to })
     table.getColumn(dateColumn)?.setFilterValue(from && to ? { from: startOfDay(from), to: endOfDay(to) } : undefined)
-  }
-
-  const column = table.getColumn(dateColumn)
-  if (column && !column.columnDef.filterFn) {
-    column.columnDef.filterFn = (row, columnId, filterValue) => {
-      if (!filterValue) return true
-
-      const rowValue = row.getValue(columnId)
-      const cellDate = rowValue instanceof Date ? rowValue : new Date(rowValue as string)
-
-      const { from, to } = filterValue as { from: Date; to: Date }
-      if (!from || !to) return true
-
-      return isWithinInterval(cellDate, {
-        start: from,
-        end: to
-      })
-    }
   }
 
   const hasActiveFilter = dateRange.from && dateRange.to

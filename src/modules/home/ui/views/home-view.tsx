@@ -28,7 +28,7 @@ export const HomeView = () => {
 
   return (
     <div className="px-4 md:px-8 space-y-8">
-      <div className="grid md:grid-cols-3 justify-items-center gap-4 rounded-lg bg-gray-100 p-4 w-full">
+      <div className="grid md:grid-cols-2 justify-items-center gap-4 rounded-lg bg-gray-100 p-4 w-full">
         <Card className="w-full max-w-sm">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">

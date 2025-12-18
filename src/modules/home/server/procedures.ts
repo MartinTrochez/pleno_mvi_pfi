@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, asc } from "drizzle-orm";
 import { products, saleItems, sales } from "@/db/schemas";
 import {
     createTRPCRouter,
@@ -24,7 +24,7 @@ export const homeRouter = createTRPCRouter({
                     )
                 )
                 .groupBy(sql`DATE(${sales.saleDate})`)
-                .orderBy(desc(sql`DATE(${sales.saleDate})`));
+                .orderBy(asc(sql`DATE(${sales.saleDate})`));
 
             const mapped = rows.map(r => ({
                 date: r.date,
@@ -94,7 +94,6 @@ export const homeRouter = createTRPCRouter({
                         sql`DATE(${sales.saleDate}) = CURRENT_DATE - INTERVAL '1 day'`
                     )
                 );
-
             const todayTotal = Number(todaySales[0]?.total || 0);
             const yesterdayTotal = Number(yesterdaySales[0]?.total || 0);
 

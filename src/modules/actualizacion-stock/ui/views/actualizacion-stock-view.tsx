@@ -4,23 +4,35 @@ import { useState } from "react";
 import { useTRPC } from "@/trpc/client";
 import { ActualizacionStock, columns } from "../components/columns";
 import { DataTable } from "../components/data-table";
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 
 export const ActualizacionStockView = () => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const [pendingAdjustments, setPendingAdjustments] = useState<Record<number, number>>({});
+  const [pendingAdjustments, setPendingAdjustments] = useState<
+    Record<number, number>
+  >({});
 
   const { data } = useSuspenseQuery(
     trpc.actualizacionStock.getMany.queryOptions(),
   );
 
-  const baseBatchUpdateOptions = trpc.actualizacionStock.batchUpdateStock.mutationOptions();
+  const baseBatchUpdateOptions =
+    trpc.actualizacionStock.batchUpdateStock.mutationOptions();
 
   const batchUpdateMutation = useMutation({
     ...baseBatchUpdateOptions,
     onSuccess: async (result, variables, context, meta) => {
-      await baseBatchUpdateOptions.onSuccess?.(result, variables, context, meta);
+      await baseBatchUpdateOptions.onSuccess?.(
+        result,
+        variables,
+        context,
+        meta,
+      );
       setPendingAdjustments({});
       await queryClient.invalidateQueries({
         queryKey: trpc.actualizacionStock.getMany.queryKey(),
@@ -33,7 +45,7 @@ export const ActualizacionStockView = () => {
     codigoBarra: item.codigoBarra ?? "Sin codigo",
     nombre: item.nombre ?? "N/A",
     cantidad: Number(item.cantidad ?? 0),
-    categoria: item.categoria ?? "",
+    categoria: item.categoria || "Sin Clasificar",
     ajuste: pendingAdjustments[item.id ?? 0] ?? 0,
   }));
 
@@ -50,10 +62,12 @@ export const ActualizacionStockView = () => {
   };
 
   const handleSaveChanges = () => {
-    const updates = Object.entries(pendingAdjustments).map(([productId, adjustment]) => ({
-      productId: Number(productId),
-      adjustment,
-    }));
+    const updates = Object.entries(pendingAdjustments).map(
+      ([productId, adjustment]) => ({
+        productId: Number(productId),
+        adjustment,
+      }),
+    );
 
     if (updates.length === 0 || batchUpdateMutation.isPending) {
       return;
@@ -88,4 +102,3 @@ export const ActualizacionStockView = () => {
     </div>
   );
 };
-

@@ -1,7 +1,8 @@
-import { requireAdminAuth, requireAuth } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 import { loadSearchParams } from "@/modules/usuarios/searchParams";
 import { UsuariosView } from "@/modules/usuarios/ui/views/usuarios-view";
 import { getQueryClient, trpc } from "@/trpc/server";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { SearchParams } from "nuqs";
 
 interface Props {
@@ -14,11 +15,15 @@ export default async function UsuariosPage({ searchParams }: Props) {
   const filters = await loadSearchParams(searchParams);
 
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(
+  await queryClient.prefetchQuery(
     trpc.usuarios.getMany.queryOptions({
       ...filters,
     }),
   );
 
-  return <UsuariosView />;
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <UsuariosView />
+    </HydrationBoundary>
+  );
 }

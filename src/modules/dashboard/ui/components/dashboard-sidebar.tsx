@@ -27,6 +27,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { useSidebarShortcuts } from "../../hooks/use-sidebar-shortcuts";
+import { ShortcutKbd } from "@/components/shortcut-kbd";
 
 const firstSection = [
   {
@@ -58,11 +60,6 @@ const firstSection = [
 
 const secondSection = [
   {
-    icon: SettingsIcon,
-    label: "Configuración",
-    href: "/configuracion",
-  },
-  {
     icon: UserIcon,
     label: "Perfil",
     href: "/perfil",
@@ -77,6 +74,13 @@ const secondSection = [
 export const DashboardSidebar = () => {
   const router = useRouter();
   const pathname = usePathname();
+
+  const allRoutes = [
+    ...firstSection.map((i) => i.href),
+    ...secondSection.map((i) => i.href),
+  ];
+
+  useSidebarShortcuts(allRoutes);
 
   const onLogout = () => {
     authClient.signOut({
@@ -106,7 +110,7 @@ export const DashboardSidebar = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {firstSection.map((item) => (
+              {firstSection.map((item, i) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
@@ -132,6 +136,8 @@ export const DashboardSidebar = () => {
                       >
                         {item.label}
                       </span>
+
+                      <ShortcutKbd value={`Alt+${i + 1}`} />
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -145,21 +151,27 @@ export const DashboardSidebar = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {secondSection.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  {item.label === "Salir" ? (
-                    <SidebarMenuButton
-                      className={cn(
-                        "h-10 hover:bg-sidebar-accent/15 border border-transparent hover:border-[#5D6B68]/10",
-                      )}
-                      onClick={onLogout}
-                    >
-                      <item.icon className="size-5" />
-                      <span className="text-sm font-medium tracking-tight">
-                        {item.label}
-                      </span>
-                    </SidebarMenuButton>
-                  ) : (
+              {secondSection.map((item, i) => {
+                const routeIndex = firstSection.length + i + 1;
+
+                if (item.label === "Salir") {
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        onClick={onLogout}
+                        className="h-10 hover:bg-sidebar-accent/15 border border-transparent hover:border-[#5D6B68]/10"
+                      >
+                        <item.icon className="size-5" />
+                        <span className="text-sm font-medium tracking-tight">
+                          {item.label}
+                        </span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                }
+
+                return (
+                  <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
                       className={cn(
@@ -169,21 +181,24 @@ export const DashboardSidebar = () => {
                       )}
                       isActive={pathname === item.href}
                     >
-                      <Link href={item.href}>
-                        <item.icon className="size-5" />
-                        <span
-                          className={cn(
-                            "text-sm font-medium tracking-tight",
-                            pathname === item.href && "text-white",
-                          )}
-                        >
-                          {item.label}
-                        </span>
-                      </Link>
+                        <Link href={item.href}>
+                          <item.icon className="size-5" />
+
+                          <span
+                            className={cn(
+                              "text-sm font-medium tracking-tight",
+                              pathname === item.href && "text-white",
+                            )}
+                          >
+                            {item.label}
+                          </span>
+
+                          <ShortcutKbd value={`Alt+${routeIndex}`} />
+                        </Link>
                     </SidebarMenuButton>
-                  )}
-                </SidebarMenuItem>
-              ))}
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

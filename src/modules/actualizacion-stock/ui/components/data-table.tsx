@@ -10,7 +10,9 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   PaginationState,
+  SortingState,
 } from "@tanstack/react-table"
+import { globalFuzzyFilter } from "@/lib/fuzzy-filter"
 import {
   Table,
   TableBody,
@@ -49,7 +51,9 @@ export function DataTable<TData, TValue>({
   onDiscardChanges,
   isSaving = false,
 }: DataTableProps<TData, TValue>) {
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = useState("")
+  const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -58,14 +62,23 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+    filterFns: {
+      fuzzy: globalFuzzyFilter,
+    },
+    globalFilterFn: globalFuzzyFilter,
     getCoreRowModel: getCoreRowModel(),
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
+    autoResetPageIndex: false,
     state: {
       columnFilters,
+      globalFilter,
+      sorting,
       pagination,
     },
     meta: {
@@ -147,7 +160,7 @@ export function DataTable<TData, TValue>({
       </div>
       <div className="flex items-center justify-between text-sm text-[#B5B6BA]">
         <div className="flex-1 text-center">
-          Mostrando {firstRow}-{lastRow} de {table.getRowCount().toLocaleString()} productos
+          Mostrando {firstRow}-{lastRow} de {table.getRowCount().toLocaleString("es-AR")} productos
         </div>
 
         <div className="flex items-center border rounded-md overflow-hidden">
